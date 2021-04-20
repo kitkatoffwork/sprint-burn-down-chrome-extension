@@ -1,0 +1,16 @@
+{
+  "name": "はかどる",
+  "version": "0.1.0",
+  "manifest_version": 2,
+  "description": "Jiraで現在進行中のスプリントバーンダウンチャートを描画します",
+  "icons": {
+    "128": "hakadoru.png"
+  },
+  "browser_action": {
+    "default_icon": "hakadoru.png",
+    "default_popup": "popup/popup.html"
+  },
+  "content_security_policy": "script-src 'self' https://cdn.jsdelivr.net/npm/chart.js; object-src 'self'",
+  "permissions": [
+  ]
+}

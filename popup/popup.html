@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Parser</title>
+  <link rel="stylesheet" href="../vendor/basic.css">
+  <style>
+    body {
+      width: 600px;
+      margin: 8px;
+    }
+
+    .horizontal-flex {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 8px;
+    }
+
+    input[type="submit"] {
+      height: 36px;
+    }
+
+    #content {
+      width: 100%;
+      height: 400px;
+    }
+
+    #error {
+      color: crimson;
+      font-style: italic;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <canvas id="chart"></canvas>
+  </div>
+  <input id="settings" type="submit" value="Settings" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
