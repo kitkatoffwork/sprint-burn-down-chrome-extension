@@ -6,11 +6,16 @@
   "icons": {
     "128": "hakadoru.png"
   },
+  "background": {
+    "scripts": ["bg_page.js"],
+    "persistent": false
+  },
   "browser_action": {
     "default_icon": "hakadoru.png",
     "default_popup": "popup/popup.html"
   },
   "content_security_policy": "script-src 'self' https://cdn.jsdelivr.net/npm/chart.js; object-src 'self'",
   "permissions": [
+    "http://s-proj.com/*"
   ]
 }

@@ -1,3 +1,24 @@
+async function isHoliday() {
+  const url = 'http://s-proj.com/utils/checkHoliday.php?date=20210424'
+  chrome.runtime.sendMessage( //goes to bg_page.js
+    url,
+    function (response) {
+      alert(response)
+    }
+  )
+  
+  return true
+}
+
+document.querySelector('#render').addEventListener('click', async (e) => {
+  e.preventDefault()
+  try {
+    isHoliday()
+  } catch (e) {
+    console.log(e)
+  }
+})
+
 document.querySelector('#settings').addEventListener('click', async (e) => {
   e.preventDefault()
   try {
@@ -9,15 +30,15 @@ document.querySelector('#settings').addEventListener('click', async (e) => {
     const message = `JiraのURL: ${jiraUrl}\nJiraのユーザー名: ${jiraUserName}\nJiraのユーザーSecret: ${jiraUserSecret}\nJiraのboardID: ${jiraBoardId}\nJiraのプロジェクト名: ${jiraProjectName}\n設定を変更しますか？`
     const changeSettings = window.confirm(message)
     if (changeSettings) {
-      const newJiraUrl = window.prompt('JiraのURL', '')
+      const newJiraUrl = window.prompt('JiraのURL', jiraUrl)
       localStorage.setItem('jiraUrl', newJiraUrl)
-      const newJiraUserName = window.prompt('Jiraのユーザー名', '')
+      const newJiraUserName = window.prompt('Jiraのユーザー名', jiraUserName)
       localStorage.setItem('jiraUserName', newJiraUserName)
-      const newJiraUserSecret = window.prompt('JiraのユーザーSecret', '')
+      const newJiraUserSecret = window.prompt('JiraのユーザーSecret', jiraUserSecret)
       localStorage.setItem('jiraUserSecret', newJiraUserSecret)
-      const newJiraBoardId = window.prompt('JiraのboardID', '')
+      const newJiraBoardId = window.prompt('JiraのboardID', jiraBoardId)
       localStorage.setItem('jiraBoardId', newJiraBoardId)
-      const newJiraProjectName = window.prompt('Jiraのプロジェクト名', '')
+      const newJiraProjectName = window.prompt('Jiraのプロジェクト名', jiraProjectName)
       localStorage.setItem('jiraProjectName', newJiraProjectName)
     }
   } catch (e) {
