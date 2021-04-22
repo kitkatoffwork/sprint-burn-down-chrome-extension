@@ -1,9 +1,11 @@
 async function isHoliday() {
-  const url = 'http://s-proj.com/utils/checkHoliday.php?date=20210424'
+  // const action = 'isHoliday'
+  const action = 'getSprint'
   chrome.runtime.sendMessage( //goes to bg_page.js
-    url,
+    action,
     function (response) {
       alert(response)
+      console.log(response)
     }
   )
   

@@ -16,6 +16,7 @@
   },
   "content_security_policy": "script-src 'self' https://cdn.jsdelivr.net/npm/chart.js; object-src 'self'",
   "permissions": [
-    "http://s-proj.com/*"
+    "http://s-proj.com/*",
+    "https://*.atlassian.net/*"
   ]
 }
