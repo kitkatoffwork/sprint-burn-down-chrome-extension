@@ -22,6 +22,15 @@ chrome.runtime.onMessage.addListener(
       })
       .then(response => response.json())
       .then(responseText => onSuccess(responseText))
+    } else if (core.action == 'fetchAllParentTasks') {
+      const fetchAllParentTasksUrl = `${jiraUrl}/rest/api/3/search?jql=project = ${jiraProjectName} AND sprint in openSprints()`
+      let headers = new Headers()
+      headers.set('Authorization', 'Basic ' + btoa(jiraUserName + ":" + jiraUserSecret))
+      fetch(fetchAllParentTasksUrl, {method:'GET',
+        headers: headers
+      })
+      .then(response => response.json())
+      .then(responseText => onSuccess(responseText))
     }
     // TODO: 残り2つJira Rest Apiを叩く部分を実装
     return true;  // Will respond asynchronously.

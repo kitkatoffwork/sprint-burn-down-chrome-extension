@@ -5,12 +5,17 @@ async function renderChart() {
 
   // 今回のスプリントで開発できる日付リストを取得
   let startDate = moment(activeSprintResponse.values[0].startDate)
-  let endDate = moment(activeSprintResponse.values[0].endDate)
+  let endDate = moment(activeSprintResponse.values[0].endDate)  
   const days = await businessDays(startDate, endDate)
   console.log('days')
   console.log(days)
 
   // 今回スプリントの全親タスク（Story）を取得
+  const allParentTasksResponse = await coreAPI({action: 'fetchAllParentTasks'})
+  console.log(allParentTasksResponse)
+  const parentTasksForJql = makeParentTasksForJql(allParentTasksResponse.issues)
+  console.log('parentTasksForJql')
+  console.log(parentTasksForJql)
 
   // 全ての子タスク分の時間を取得
 
@@ -41,6 +46,17 @@ function coreAPI(payload) {
       }
     )
   })
+}
+
+function makeParentTasksForJql (issues) {
+  let parentTasksForJql = ''
+  for (const el of issues) {
+    parentTasksForJql += 'parent = ' + el.key
+    if (el != issues.slice(-1)[0]) {
+      parentTasksForJql += ' OR '
+    }
+  }
+  return parentTasksForJql
 }
 
 document.querySelector('#render').addEventListener('click', async (e) => {
