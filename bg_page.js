@@ -8,16 +8,16 @@ chrome.runtime.onMessage.addListener(
 
     if(core.action == 'isHoliday') {
       // const url = 'http://s-proj.com/utils/checkHoliday.php?date=20210424'
-      const url = `http://s-proj.com/utils/checkHoliday.php?date=${core.date}`
-      fetch(url)
+      const isHolidayUrl = `http://s-proj.com/utils/checkHoliday.php?date=${core.date}`
+      fetch(isHolidayUrl)
         .then(response => response.text())
         .then(responseText => onSuccess(responseText))
-    } else if (core == 'getSprint') {
+    } else if (core.action == 'activeSprint') {
       // Jira Rest Apiを叩き（Basic認証）activeなスプリントのデータを取得
-      const url2 = jiraUrl + '/rest/agile/1.0/board/' + jiraBoardId + '/sprint?state=active'
+      const activeSprintUrl = jiraUrl + '/rest/agile/1.0/board/' + jiraBoardId + '/sprint?state=active'
       let headers = new Headers()
       headers.set('Authorization', 'Basic ' + btoa(jiraUserName + ":" + jiraUserSecret))
-      fetch(url2, {method:'GET',
+      fetch(activeSprintUrl, {method:'GET',
         headers: headers
       })
       .then(response => response.json())

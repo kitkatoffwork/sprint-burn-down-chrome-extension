@@ -1,17 +1,11 @@
 async function renderChart() {
   // アクティブなスプリントを取得
-  const action = 'getSprint'
-  chrome.runtime.sendMessage( //goes to bg_page.js
-    action,
-    function (response) {
-      alert(response)
-      console.log(response)
-    }
-  )
+  const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
+  console.log(activeSprintResponse)
 
   // 今回のスプリントで開発できる日付リストを取得
-  let startDate = moment('2021-4-21')
-  let endDate = moment('2021-4-30')
+  let startDate = moment(activeSprintResponse.values[0].startDate)
+  let endDate = moment(activeSprintResponse.values[0].endDate)
   const days = await businessDays(startDate, endDate)
   console.log('days')
   console.log(days)
