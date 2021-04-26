@@ -1,5 +1,5 @@
-async function isHoliday() {
-  // const action = 'isHoliday'
+async function renderChart() {
+  // アクティブなスプリントを取得
   const action = 'getSprint'
   chrome.runtime.sendMessage( //goes to bg_page.js
     action,
@@ -8,19 +8,57 @@ async function isHoliday() {
       console.log(response)
     }
   )
+
+  // 今回のスプリントで開発できる日付リストを取得
+  let startDate = moment('2021-4-21')
+  let endDate = moment('2021-4-30')
+  const days = await businessDays(startDate, endDate)
+  console.log('days')
+  console.log(days)
+
+  // 今回スプリントの全親タスク（Story）を取得
+
+  // 全ての子タスク分の時間を取得
+
+  // スプリント開始から今日まで日ごとに消化したタスク取得
+
+  // issues.fields.resolutiondateの日付でタスク完了日を取得、issues.fields.timeestimateでタスクの所要時間を取得しグラフ描画情報を設定
   
   return true
+}
+
+async function businessDays (sDate, eDate) {
+  let dateList = [] // start-end範囲内に存在する日付リスト
+  // スプリント最終日は開発を行わない（レビュー日）ため計画から除く
+  for (let d = sDate; d < eDate; d.add(1, "days")) {
+    const response = await coreAPI({ action: 'isHoliday', date: d.format("YYYYMMDD") })
+    if (response != 'holiday') dateList.push(d.format("YYYYMMDD"))
+  }
+  return dateList
+}
+
+// backgroundのAPICallをPromiseでラップすることでasync/awaitが使えるようになる
+function coreAPI(payload) {
+  return new Promise(function (resolve) {
+    chrome.runtime.sendMessage( //goes to bg_page.js
+      payload,
+      function (response) {
+        resolve(response)
+      }
+    )
+  })
 }
 
 document.querySelector('#render').addEventListener('click', async (e) => {
   e.preventDefault()
   try {
-    isHoliday()
+    renderChart()
   } catch (e) {
     console.log(e)
   }
 })
 
+// "Settings"ボタンクリック→Jira Rest APIへアクセスするための情報をセット
 document.querySelector('#settings').addEventListener('click', async (e) => {
   e.preventDefault()
   try {
@@ -48,6 +86,7 @@ document.querySelector('#settings').addEventListener('click', async (e) => {
   }
 })
 
+// チャート描画データ
 var ctx = document.getElementById("chart").getContext('2d');
 var chart = new Chart(ctx, {
   type: 'line',

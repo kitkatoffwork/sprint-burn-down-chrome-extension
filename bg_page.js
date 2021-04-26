@@ -1,17 +1,18 @@
 chrome.runtime.onMessage.addListener(
-  function(action, sender, onSuccess) {
+  function(core, sender, onSuccess) {
     const jiraUrl = localStorage.getItem('jiraUrl')
     const jiraUserName = localStorage.getItem('jiraUserName')
     const jiraUserSecret = localStorage.getItem('jiraUserSecret')
     const jiraBoardId = localStorage.getItem('jiraBoardId')
     const jiraProjectName = localStorage.getItem('jiraProjectName')
 
-    if(action == 'isHoliday') {
-      const url = 'http://s-proj.com/utils/checkHoliday.php?date=20210424'
+    if(core.action == 'isHoliday') {
+      // const url = 'http://s-proj.com/utils/checkHoliday.php?date=20210424'
+      const url = `http://s-proj.com/utils/checkHoliday.php?date=${core.date}`
       fetch(url)
         .then(response => response.text())
         .then(responseText => onSuccess(responseText))
-    } else if (action == 'getSprint') {
+    } else if (core == 'getSprint') {
       // Jira Rest Apiを叩き（Basic認証）activeなスプリントのデータを取得
       const url2 = jiraUrl + '/rest/agile/1.0/board/' + jiraBoardId + '/sprint?state=active'
       let headers = new Headers()
