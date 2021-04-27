@@ -18,6 +18,18 @@ async function renderChart() {
   console.log(parentTasksForJql)
 
   // 全ての子タスク分の時間を取得
+  const allChildrenTaskTimeResponse = await coreAPI({action: 'fetchAllChildrenTaskTime', parentTasksForJql: parentTasksForJql})
+  const issues = allChildrenTaskTimeResponse.issues
+  const sprintFullTime = calcSprintFullTime(issues)
+  const timeLeftPlan = makeTimeLeftPlan(sprintFullTime, days)
+  console.log('allChildrenTaskTimeResponse')
+  console.log(allChildrenTaskTimeResponse)
+  console.log('issues')
+  console.log(issues)
+  console.log('sprintFullTime')
+  console.log(sprintFullTime)
+  console.log('timeLeftPlan')
+  console.log(timeLeftPlan)
 
   // スプリント開始から今日まで日ごとに消化したタスク取得
 
@@ -34,6 +46,19 @@ async function businessDays (sDate, eDate) {
     if (response != 'holiday') dateList.push(d.format("YYYYMMDD"))
   }
   return dateList
+}
+
+function calcSprintFullTime (issues) {
+  let sprintFullTime = 0
+  for (const el of issues) {
+    sprintFullTime += el.fields.timeestimate
+  }
+  // 秒単位→時間単位へ変換
+  return this.convertSecond2Hour(sprintFullTime)
+}
+
+function convertSecond2Hour (sec) {
+  return sec / 3600
 }
 
 // backgroundのAPICallをPromiseでラップすることでasync/awaitが使えるようになる
@@ -57,6 +82,20 @@ function makeParentTasksForJql (issues) {
     }
   }
   return parentTasksForJql
+}
+
+function makeTimeLeftPlan (sprintFullTime, sprintDays) {
+  const timeAvailablePerDay = sprintFullTime / (sprintDays.length - 1)
+  let timeLeftPlanNum = sprintFullTime
+  let timeLeftPlan = []
+  for (const day of sprintDays) {
+    timeLeftPlan.push(timeLeftPlanNum)
+    timeLeftPlanNum -= timeAvailablePerDay
+  }
+  // 最終日は0に固定（浮動小数点演算のため計算結果が0にならないケースがあるため）
+  timeLeftPlan.pop()
+  timeLeftPlan.push(0)
+  return timeLeftPlan
 }
 
 document.querySelector('#render').addEventListener('click', async (e) => {
