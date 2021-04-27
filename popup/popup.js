@@ -1,4 +1,11 @@
+window.onload = function() {
+  renderChart()
+}
+
 async function renderChart() {
+  // loadingアニメーション開始
+  const spinner = document.getElementById('loading');
+
   // アクティブなスプリントを取得
   const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
 
@@ -39,6 +46,9 @@ async function renderChart() {
 
   // チャートを描画する
   updateChart(days, timeLeftPlan, timeLeftLog)
+
+  // loadingアニメーション終了
+  spinner.classList.add('loaded');
 
   return true
 }
