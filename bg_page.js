@@ -41,7 +41,6 @@ chrome.runtime.onMessage.addListener(
       .then(response => response.json())
       .then(responseText => onSuccess(responseText))
     }
-    // TODO: 残り2つJira Rest Apiを叩く部分を実装
     return true;  // Will respond asynchronously.
   }
 );

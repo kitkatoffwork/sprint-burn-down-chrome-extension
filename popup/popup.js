@@ -1,40 +1,45 @@
 async function renderChart() {
   // アクティブなスプリントを取得
   const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
-  console.log(activeSprintResponse)
 
   // 今回のスプリントで開発できる日付リストを取得
   let startDate = moment(activeSprintResponse.values[0].startDate)
   let endDate = moment(activeSprintResponse.values[0].endDate)  
   const days = await businessDays(startDate, endDate)
-  console.log('days')
-  console.log(days)
 
   // 今回スプリントの全親タスク（Story）を取得
   const allParentTasksResponse = await coreAPI({action: 'fetchAllParentTasks'})
-  console.log(allParentTasksResponse)
   const parentTasksForJql = makeParentTasksForJql(allParentTasksResponse.issues)
-  console.log('parentTasksForJql')
-  console.log(parentTasksForJql)
 
   // 全ての子タスク分の時間を取得
   const allChildrenTaskTimeResponse = await coreAPI({action: 'fetchAllChildrenTaskTime', parentTasksForJql: parentTasksForJql})
   const issues = allChildrenTaskTimeResponse.issues
   const sprintFullTime = calcSprintFullTime(issues)
   const timeLeftPlan = makeTimeLeftPlan(sprintFullTime, days)
-  console.log('allChildrenTaskTimeResponse')
-  console.log(allChildrenTaskTimeResponse)
-  console.log('issues')
-  console.log(issues)
-  console.log('sprintFullTime')
-  console.log(sprintFullTime)
-  console.log('timeLeftPlan')
-  console.log(timeLeftPlan)
 
   // スプリント開始から今日まで日ごとに消化したタスク取得
+  let timeLeft = sprintFullTime
+  let timeLeftLog = []
 
   // issues.fields.resolutiondateの日付でタスク完了日を取得、issues.fields.timeestimateでタスクの所要時間を取得しグラフ描画情報を設定
-  
+  for (const day of days) {
+    if (moment(day).isAfter(moment())) {
+      break
+    }
+    for (const issue of issues) {
+      if (day == moment(issue.fields.resolutiondate).format("YYYY-MM-DD")) {
+        timeLeft -= convertSecond2Hour(issue.fields.timeestimate)
+      }
+    }
+    // 残り時間の実績に追加
+    timeLeftLog.push(timeLeft)
+    // タスク残時間・先行遅れ・進捗率を更新
+    taskLeft = timeLeftLog.slice(-1)[0].toFixed(1)
+  }
+
+  // チャートを描画する
+  updateChart(days, timeLeftPlan, timeLeftLog)
+
   return true
 }
 
@@ -42,8 +47,8 @@ async function businessDays (sDate, eDate) {
   let dateList = [] // start-end範囲内に存在する日付リスト
   // スプリント最終日は開発を行わない（レビュー日）ため計画から除く
   for (let d = sDate; d < eDate; d.add(1, "days")) {
-    const response = await coreAPI({ action: 'isHoliday', date: d.format("YYYYMMDD") })
-    if (response != 'holiday') dateList.push(d.format("YYYYMMDD"))
+    const response = await coreAPI({ action: 'isHoliday', date: d.format("YYYY-MM-DD") })
+    if (response != 'holiday') dateList.push(d.format("YYYY-MM-DD"))
   }
   return dateList
 }
@@ -135,58 +140,53 @@ document.querySelector('#settings').addEventListener('click', async (e) => {
   }
 })
 
-// チャート描画データ
-var ctx = document.getElementById("chart").getContext('2d');
-var chart = new Chart(ctx, {
-  type: 'line',
-data: {
-  labels: ['8月1日', '8月2日', '8月3日', '8月4日', '8月5日', '8月6日', '8月7日'],
-  datasets: [
-    {
-      label: '計画',
-      lineTension: 0,
-      backgroundColor: '#7FC3FF',
-      fill: false,
-      borderColor: '#7FC3FF',
-      borderWidth: 3,
-      pointHitRadius: 15,
-      hoverRadius: 10,
-      radius: 5,
-      pointStyle: 'circle',
-      data: [35, 30, 25, 20, 15, 10, 5, 0],
-      borderDash: [5, 5]
-    },
-    {
-      label: '実績',
-      lineTension: 0,
-      backgroundColor: '#00bfff',
-      fill: false,
-      borderColor: '#00bfff',
-      borderWidth: 5,
-      pointHitRadius: 15,
-      hoverRadius: 10,
-      radius: 5,
-      pointStyle: 'rectRounded',
-      data: [35, 27, 24, 16, 13, 8]
-    }
-  ],
-},
-options: {
-  title: {
-    display: true,
-    text: '気温（8月1日~8月7日）'
-  },
-  scales: {
-    yAxes: [{
-      ticks: {
-        suggestedMax: 40,
-        suggestedMin: 0,
-        stepSize: 10,
-        callback: function(value, index, values){
-          return  value +  '度'
+function updateChart(days, timeLeftPlan, timeLeftLog) {
+  // チャート描画データ
+  var ctx = document.getElementById("chart").getContext('2d');
+  var chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        {
+          label: '計画',
+          lineTension: 0,
+          backgroundColor: '#7FC3FF',
+          fill: false,
+          borderColor: '#7FC3FF',
+          borderWidth: 3,
+          pointHitRadius: 15,
+          hoverRadius: 10,
+          radius: 5,
+          pointStyle: 'circle',
+          data: timeLeftPlan,
+          borderDash: [5, 5]
+        },
+        {
+          label: '実績',
+          lineTension: 0,
+          backgroundColor: '#00bfff',
+          fill: false,
+          borderColor: '#00bfff',
+          borderWidth: 5,
+          pointHitRadius: 15,
+          hoverRadius: 10,
+          radius: 5,
+          pointStyle: 'rectRounded',
+          data: timeLeftLog
         }
-      }
-    }]
-  },
+      ],
+    },
+    options: {
+      scales: {
+        yAxes: [{
+          ticks: {
+            suggestedMax: 40,
+            suggestedMin: 0,
+            stepSize: 10
+          }
+        }]
+      },
+    }
+  });
 }
-});
