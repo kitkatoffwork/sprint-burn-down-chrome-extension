@@ -5,47 +5,51 @@ window.onload = function() {
 async function renderChart() {
   // loadingアニメーション開始
   const spinner = document.getElementById('loading');
+  try {
+    // アクティブなスプリントを取得
+    const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
 
-  // アクティブなスプリントを取得
-  const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
+    // 今回のスプリントで開発できる日付リストを取得
+    let startDate = moment(activeSprintResponse.values[0].startDate)
+    let endDate = moment(activeSprintResponse.values[0].endDate)  
+    const days = await businessDays(startDate, endDate)
 
-  // 今回のスプリントで開発できる日付リストを取得
-  let startDate = moment(activeSprintResponse.values[0].startDate)
-  let endDate = moment(activeSprintResponse.values[0].endDate)  
-  const days = await businessDays(startDate, endDate)
+    // 今回スプリントの全親タスク（Story）を取得
+    const allParentTasksResponse = await coreAPI({action: 'fetchAllParentTasks'})
+    const parentTasksForJql = makeParentTasksForJql(allParentTasksResponse.issues)
 
-  // 今回スプリントの全親タスク（Story）を取得
-  const allParentTasksResponse = await coreAPI({action: 'fetchAllParentTasks'})
-  const parentTasksForJql = makeParentTasksForJql(allParentTasksResponse.issues)
+    // 全ての子タスク分の時間を取得
+    const allChildrenTaskTimeResponse = await coreAPI({action: 'fetchAllChildrenTaskTime', parentTasksForJql: parentTasksForJql})
+    const issues = allChildrenTaskTimeResponse.issues
+    const sprintFullTime = calcSprintFullTime(issues)
+    const timeLeftPlan = makeTimeLeftPlan(sprintFullTime, days)
 
-  // 全ての子タスク分の時間を取得
-  const allChildrenTaskTimeResponse = await coreAPI({action: 'fetchAllChildrenTaskTime', parentTasksForJql: parentTasksForJql})
-  const issues = allChildrenTaskTimeResponse.issues
-  const sprintFullTime = calcSprintFullTime(issues)
-  const timeLeftPlan = makeTimeLeftPlan(sprintFullTime, days)
+    // スプリント開始から今日まで日ごとに消化したタスク取得
+    let timeLeft = sprintFullTime
+    let timeLeftLog = []
 
-  // スプリント開始から今日まで日ごとに消化したタスク取得
-  let timeLeft = sprintFullTime
-  let timeLeftLog = []
-
-  // issues.fields.resolutiondateの日付でタスク完了日を取得、issues.fields.timeestimateでタスクの所要時間を取得しグラフ描画情報を設定
-  for (const day of days) {
-    if (moment(day).isAfter(moment())) {
-      break
-    }
-    for (const issue of issues) {
-      if (day == moment(issue.fields.resolutiondate).format("YYYY-MM-DD")) {
-        timeLeft -= convertSecond2Hour(issue.fields.timeestimate)
+    // issues.fields.resolutiondateの日付でタスク完了日を取得、issues.fields.timeestimateでタスクの所要時間を取得しグラフ描画情報を設定
+    for (const day of days) {
+      if (moment(day).isAfter(moment())) {
+        break
       }
+      for (const issue of issues) {
+        if (day == moment(issue.fields.resolutiondate).format("YYYY-MM-DD")) {
+          timeLeft -= convertSecond2Hour(issue.fields.timeestimate)
+        }
+      }
+      // 残り時間の実績に追加
+      timeLeftLog.push(timeLeft)
+      // タスク残時間・先行遅れ・進捗率を更新
+      taskLeft = timeLeftLog.slice(-1)[0].toFixed(1)
     }
-    // 残り時間の実績に追加
-    timeLeftLog.push(timeLeft)
-    // タスク残時間・先行遅れ・進捗率を更新
-    taskLeft = timeLeftLog.slice(-1)[0].toFixed(1)
-  }
 
-  // チャートを描画する
-  updateChart(days, timeLeftPlan, timeLeftLog)
+    // チャートを描画する
+    updateChart(days, timeLeftPlan, timeLeftLog)
+  } catch (e) {
+    alert('Settingsの登録値を見直してください')
+    console.log(e)
+  }
 
   // loadingアニメーション終了
   spinner.classList.add('loaded');
