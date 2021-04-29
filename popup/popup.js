@@ -3,8 +3,6 @@ window.onload = function() {
 }
 
 async function renderChart() {
-  // loadingアニメーション開始
-  const spinner = document.getElementById('loading');
   try {
     // アクティブなスプリントを取得
     const activeSprintResponse = await coreAPI({ action: 'activeSprint' })
@@ -52,6 +50,7 @@ async function renderChart() {
   }
 
   // loadingアニメーション終了
+  const spinner = document.getElementById('loading');
   spinner.classList.add('loaded');
 
   return true
@@ -120,6 +119,12 @@ function makeTimeLeftPlan (sprintFullTime, sprintDays) {
 document.querySelector('#render').addEventListener('click', async (e) => {
   e.preventDefault()
   try {
+    if (chart) {
+      // loadingアニメーション開始
+      const spinner = document.getElementById('loading');
+      spinner.classList.remove('loaded');
+      chart.destroy();
+    }
     renderChart()
   } catch (e) {
     console.log(e)
@@ -157,7 +162,7 @@ document.querySelector('#settings').addEventListener('click', async (e) => {
 function updateChart(days, timeLeftPlan, timeLeftLog) {
   // チャート描画データ
   var ctx = document.getElementById("chart").getContext('2d');
-  var chart = new Chart(ctx, {
+  window.chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: days,
