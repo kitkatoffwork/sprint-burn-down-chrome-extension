@@ -1,5 +1,14 @@
 window.onload = function() {
-  renderChart()
+  try {
+    if (isSettingIncludesNull()) throw 'Setting includes null'
+    renderChart()
+  } catch (e) {
+    alert('Settingsの登録値を見直してください')
+    // loadingアニメーション終了
+    const spinner = document.getElementById('loading');
+    spinner.classList.add('loaded');
+    console.log(e)
+  }
 }
 
 async function renderChart() {
@@ -116,9 +125,20 @@ function makeTimeLeftPlan (sprintFullTime, sprintDays) {
   return timeLeftPlan
 }
 
+function isSettingIncludesNull () {
+  const jiraUrl = localStorage.getItem('jiraUrl')
+  const jiraUserName = localStorage.getItem('jiraUserName')
+  const jiraUserSecret = localStorage.getItem('jiraUserSecret')
+  const jiraBoardId = localStorage.getItem('jiraBoardId')
+  const jiraProjectName = localStorage.getItem('jiraProjectName')
+  if ([jiraUrl, jiraUserName, jiraUserSecret, jiraBoardId, jiraProjectName].includes(null)) return true
+  return false
+}
+
 document.querySelector('#render').addEventListener('click', async (e) => {
   e.preventDefault()
   try {
+    if (isSettingIncludesNull()) throw 'Setting includes null'
     if (chart) {
       // loadingアニメーション開始
       const spinner = document.getElementById('loading');
@@ -127,6 +147,7 @@ document.querySelector('#render').addEventListener('click', async (e) => {
     }
     renderChart()
   } catch (e) {
+    alert('Settingsの登録値を見直してください')
     console.log(e)
   }
 })
